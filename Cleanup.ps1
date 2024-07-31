@@ -84,7 +84,7 @@ $AppsToRemove = @(
 #let's see which of the above apps are acgtually provisioned 
 $provisioned = Get-AppxProvisionedPackage -Online
 foreach ($appxprov in $provisioned) {
-    # Write-Host "Checking whether $($appxprov.DisplayName) is in the list of apps to be removed"
+    Write-Host "Checking whether $($appxprov.DisplayName) is in the list of apps to be removed"
     if ($AppsToRemove -match $appxprov.DisplayName) {
         Write-Host "$($appxprov.DisplayName) Version $($appxprov.version) will be removed"
         #add it to an array of apps to remove
@@ -109,21 +109,23 @@ foreach ($PackageToRemove in $PackagesToRemove) {
         Write-Host "Unable to remove $PackageDisplayName version $PackageVersion"
     }
     # If it is installed in any user profile, remove it for all users
-    # Write-Host "Checking to see if $PackageDisplayName version $PackageVersion has ever been installed in a users profile"
-    # $InstalledPackage = Get-AppxPackage -Name $PackageDisplayName -AllUsers
-    # if ($InstalledPackage) {
-    # Write-Host "$PackageDisplayName version $PackageVersion is installed. . Removing for all users."
-    # try {
-    # $InstalledPackage | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
-    # Write-Host "Removed $PackageDisplayName version $PackageVersion for all users."
-    # }
-    # catch {
-    # Write-Host "Unable to remove $PackageDisplayName version $PackageVersion for all users."
-    # }
-    # }
-    # else {
-    # Write-Host "$PackageDisplayName has not been installed in any users profile."
-    # }
+    Write-Host "Checking to see if $PackageDisplayName version $PackageVersion has ever been installed in AllUsers profile"
+    $InstalledPackage = Get-AppxPackage -Name $PackageDisplayName -AllUsers
+    if ($InstalledPackage) {
+        Write-Host "$PackageDisplayName version $PackageVersion is installed. . Removing for all users."
+        try {
+            $InstalledPackage | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
+            Write-Host "Removed $PackageDisplayName version $PackageVersion for all users."
+            $InstalledPackage | Remove-AppxPackage -ErrorAction SilentlyContinue
+            Write-Host "Removed $PackageDisplayName version $PackageVersion for current user."
+        }
+        catch {
+            Write-Host "Unable to remove $PackageDisplayName version $PackageVersion for all users."
+        }
+    }
+    else {
+        Write-Host "$PackageDisplayName has not been installed in any users profile."
+    }
 }
 
 

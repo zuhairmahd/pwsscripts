@@ -27,8 +27,16 @@ If (Test-Path $UninstallListFile) {
     Write-Output "The following apps will be uninstalled: $PackagesToRemove"
     foreach ($Package in $PackagesToRemove) {
         Write-Output "Uninstalling $Package"
-        # Remove-AppxPackage -Package $Package -AllUsers -ErrorAction SilentlyContinue
-        Write-Output "Uninstalled $Package"
+        try {
+            # Get-AppxPackage -Name $Package -AllUsers | Remove-AppxPackage -ErrorAction Stop
+            Write-Output "Uninstalling $Package for all users"
+            Remove-AppxPackage -Package $Package -AllUsers -ErrorAction SilentlyContinue
+            Write-Output "Uninstalling $Package for current user"
+            Remove-AppxPackage -Package $Package -ErrorAction SilentlyContinue
+        }
+        catch {
+            Write-Output "Failed to uninstall $Package"
+        }
     }
 }
 else {

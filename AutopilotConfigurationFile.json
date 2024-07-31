@@ -1,0 +1,16 @@
+{
+    "CloudAssignedDomainJoinMethod": 0,
+    "CloudAssignedDeviceName": "ZMC-%RAND:3%",
+    "CloudAssignedAutopilotUpdateTimeout": 1800000,
+    "CloudAssignedForcedEnrollment": 1,
+    "Version": 2049,
+    "CloudAssignedTenantId": "4adbbdd8-2a44-437c-8611-d8f9a7ba6c64",
+    "CloudAssignedAutopilotUpdateDisabled": 1,
+    "ZtdCorrelationId": "edaca6f4-58e4-4a55-a985-52c8f74fb6c4",
+    "Comment_File": "Profile windowscloudconfig Autopilot profile 20220517_16:06:13",
+    "CloudAssignedAadServerData": "{\"ZeroTouchConfig\":{\"CloudAssignedTenantUpn\":\"\",\"ForcedEnrollment\":1,\"CloudAssignedTenantDomain\":\"arabictutor.com\"}}",
+    "CloudAssignedOobeConfig": 1308,
+    "CloudAssignedTenantDomain": "arabictutor.com",
+    "CloudAssignedLanguage": "os-default",
+    "CloudAssignedRegion": "os-default"
+}

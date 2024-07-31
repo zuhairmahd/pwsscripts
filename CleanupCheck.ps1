@@ -93,6 +93,8 @@ ForEach ($App in $InstalledApps) {
     }
 }
 
+
+
 #If there are any apps to be uninstalled, write them to a text file and return exit 1
 If ($PackagesToRemove) {
     Write-Output "The following apps will be removed: $($PackagesToRemove)"
