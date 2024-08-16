@@ -10,6 +10,18 @@ $AlwaysRun = 1
 $NeverRun = 0
 $AllUsersRunKeyName = 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Run'
 # $CurrentUserRunKeyName = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+$LogFolder = 'C:\ProgramData\PWSLogs'
+$LogFile = 'JAWS2023.log'
+If (Test-Path $LogFolder) {
+    Write-Output "$LogFolder exists.  Creating/appending to $LogFile."
+}
+else {
+    Write-Output "The folder $LogFolder doesn't exist. This folder will be used for storing logs created after the script runs. Creating now."
+    Start-Sleep 1
+    New-Item -Path $LogFolder -ItemType Directory | Out-Null
+    Write-Output "The folder $LogFolder was successfully created. Files will be written to $LogFile."
+}
+Start-Transcript -Append -IncludeInvocationHeader -Path "$LogFolder$LogFile"
 
 try {
     #Let's see if JAWS is installed by checking for the presence of the jaws executable
@@ -88,3 +100,4 @@ catch {
     Write-Host $_exception.Message $key
     exit 1
 }
+Stop-Transcript

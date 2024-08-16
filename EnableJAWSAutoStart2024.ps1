@@ -1,4 +1,7 @@
 # Enable JAWS to auto start on login
+#define variables
+$LogFolder = 'C:\ProgramData\PWSLogs'
+$LogFile = 'JAWS2024.log'
 $machinePath = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Accessibility'
 $JAWSFilePath = 'C:\Program Files\Freedom Scientific\JAWS\2024\jfw.exe'
 $JAWSRegistryPath = 'HKLM:\SOFTWARE\Freedom Scientific\JAWS\2024'
@@ -12,6 +15,18 @@ $AllUsersRunKeyName = 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Run'
 # $CurrentUserRunKeyName = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
 
 
+#Create Folder to keep logs 
+If (Test-Path $LogFolder) {
+    Write-Output "$LogFolder exists.  Creating/appending to $LogFile."
+}
+else {
+    Write-Output "The folder $LogFolder doesn't exist. This folder will be used for storing logs created after the script runs. Creating now."
+    Start-Sleep 1
+    New-Item -Path $LogFolder -ItemType Directory | Out-Null
+    Write-Output "The folder $LogFolder was successfully created."
+}
+
+Start-Transcript -Append -IncludeInvocationHeader -Path $LogFolder\$LogFile
 
 try {
     #Let's see if JAWS is installed by checking for the presence of the jaws executable
@@ -90,3 +105,5 @@ catch {
     Write-Host $_exception.Message $key
     exit 1
 }
+
+Stop-Transcript
