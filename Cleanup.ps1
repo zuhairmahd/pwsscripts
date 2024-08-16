@@ -1,5 +1,4 @@
 #define variables
-
 $LogFolder = 'C:\ProgramData\PWSLogs'
 $LogFile = 'Cleanup.log'
 #Do not crash on errors
