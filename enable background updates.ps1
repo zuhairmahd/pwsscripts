@@ -1,6 +1,6 @@
 #define variables
 $LogFolder = 'C:\ProgramData\PWSLogs'
-$LogFile = 'update.log'
+$LogFile = 'regUpdate.log'
 $registryPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Orchestrator'
 $Name = 'ScanBeforeInitialLogonAllowed'
 $value = '1'
@@ -15,15 +15,23 @@ else {
 }
 Start-Transcript -Append -IncludeInvocationHeader -Path $LogFolder\$LogFile
 
+try {
+    if (!(Test-Path $registryPath)) {
+        Write-Host $registryPath does not exist.  Creating.
+        New-Item -Path $registryPath -Force | Out-Null
+    }
+    if (!(Get-ItemProperty -Path $registryPath -Name $name -ErrorAction SilentlyContinue)) {
+        Write-Host the key $name in $registryPath does not exist.  Creating.
+        New-ItemProperty -Path $registryPath -Name $name -Value $value -PropertyType DWORD -Force | Out-Null
+    }
+    else {
+        Write-Host Found $name in $registryPath. Setting value to $value.
+        Set-ItemProperty -Path $registryPath -Name $name -Value $value
+    }
+}
 
-if (!(Test-Path $registryPath)) {
-    New-Item -Path $registryPath -Force | Out-Null
-}
-if (!(Get-ItemProperty -Path $registryPath -Name $name -ErrorAction SilentlyContinue)) {
-    New-ItemProperty -Path $registryPath -Name $name -Value $value -PropertyType DWORD -Force | Out-Null
-}
-else {
-    Set-ItemProperty -Path $registryPath -Name $name -Value $value
+catch {
+    Write-Host 'An error occurred.  Please check the log file for more information.'
 }
 
 Stop-Transcript
