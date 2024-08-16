@@ -34,10 +34,11 @@ function Get-TimeZoneFromCity {
 function Get-UnixTimeZoneFromIP {
     #First let's get the IP address
     $IPAddress = (Invoke-WebRequest -Uri 'https://api.ipify.org/').Content
-    Write-Host Your detected public IP address is $IPAddress
+    
     #See if we can get the time zone, assuming an IP address was returned
     if ($IPAddress -as [ipaddress]) {
         $GeoIP = Invoke-RestMethod -Uri "https://freegeoip.app/json/$IPAddress"
+        Write-Host Your detected public IP address is $IPAddress.  This puts you around $GeoIP.city, in $GeoIP.region_name.
         $UnixTimeZone = $GeoIP.time_zone
     }
     if ($UnixTimeZone) {
@@ -149,8 +150,7 @@ if (-not ($WindowsTimezone )) {
 Write-Host "Time zone detected as $WindowsTimeZone"
 $CurrentTimeZone = Get-TimeZone
 if ($CurrentTimeZone.Id -eq $WindowsTimeZone) {
-    Write-Host "Time zone is already set to $WindowsTimeZone"
-    exit 0
+    Write-Host "Time zone is already set to $WindowsTimeZone. Nothing to do."
 }
 else {
     Write-Host "Time zone is currently set to $($CurrentTimeZone.Id)"
