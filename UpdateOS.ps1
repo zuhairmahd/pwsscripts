@@ -58,13 +58,15 @@ Param(
 Process {
 
     # If we are running as a 32-bit process on an x64 system, re-launch as a 64-bit process
-    if ("$env:PROCESSOR_ARCHITEW6432" -ne "ARM64") {
+    if ("$env:PROCESSOR_ARCHITEW6432" -ne 'ARM64') {
         if (Test-Path "$($env:WINDIR)\SysNative\WindowsPowerShell\v1.0\powershell.exe") {
             if ($ExcludeDrivers) {
                 & "$($env:WINDIR)\SysNative\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy bypass -NoProfile -File "$PSCommandPath" -Reboot $Reboot -RebootTimeout $RebootTimeout -ExcludeDrivers
-            } elseif ($ExcludeUpdates) {
+            }
+            elseif ($ExcludeUpdates) {
                 & "$($env:WINDIR)\SysNative\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy bypass -NoProfile -File "$PSCommandPath" -Reboot $Reboot -RebootTimeout $RebootTimeout -ExcludeUpdates
-            } else {
+            }
+            else {
                 & "$($env:WINDIR)\SysNative\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy bypass -NoProfile -File "$PSCommandPath" -Reboot $Reboot -RebootTimeout $RebootTimeout
             }
             Exit $lastexitcode
@@ -72,23 +74,23 @@ Process {
     }
 
     # Create a tag file just so Intune knows this was installed
-    if (-not (Test-Path "$($env:ProgramData)\Microsoft\UpdateOS")) {
-        Mkdir "$($env:ProgramData)\Microsoft\UpdateOS"
+    if (-not (Test-Path "$($env:ProgramData)\PWSLogs\UpdateOS")) {
+        mkdir "$($env:ProgramData)\PWSLogs\UpdateOS"
     }
-    Set-Content -Path "$($env:ProgramData)\Microsoft\UpdateOS\UpdateOS.ps1.tag" -Value "Installed"
+    Set-Content -Path "$($env:ProgramData)\PWSLogs\UpdateOS\UpdateOS.ps1.tag" -Value 'Installed'
 
     # Start logging
-    Start-Transcript "$($env:ProgramData)\Microsoft\UpdateOS\UpdateOS.log"
+    Start-Transcript "$($env:ProgramData)\PWSLogs\UpdateOS\UpdateOS.log"
 
     # Main logic
     $script:needReboot = $false
 
     # Opt into Microsoft Update
-    $ts = get-date -f "yyyy/MM/dd hh:mm:ss tt"
+    $ts = Get-Date -f 'yyyy/MM/dd hh:mm:ss tt'
     Write-Output "$ts Opting into Microsoft Update"
-    $ServiceManager = New-Object -ComObject "Microsoft.Update.ServiceManager"
-    $ServiceID = "7971f918-a847-4430-9279-4a52d1efe18d"
-    $ServiceManager.AddService2($ServiceId, 7, "") | Out-Null
+    $ServiceManager = New-Object -ComObject 'Microsoft.Update.ServiceManager'
+    $ServiceID = '7971f918-a847-4430-9279-4a52d1efe18d'
+    $ServiceManager.AddService2($ServiceId, 7, '') | Out-Null
 
     # Install all available updates
     $WUDownloader = (New-Object -ComObject Microsoft.Update.Session).CreateUpdateDownloader()
@@ -100,7 +102,8 @@ Process {
     elseif ($ExcludeUpdates) {
         # Drivers only
         $queries = @("IsInstalled=0 and Type='Driver'")
-    } else {
+    }
+    else {
         # Both
         $queries = @("IsInstalled=0 and Type='Software'", "IsInstalled=0 and Type='Driver'")
     }
@@ -108,11 +111,15 @@ Process {
     $queries | ForEach-Object {
 
         $WUUpdates = New-Object -ComObject Microsoft.Update.UpdateColl
-        $ts = get-date -f "yyyy/MM/dd hh:mm:ss tt"
+        $ts = Get-Date -f 'yyyy/MM/dd hh:mm:ss tt'
         Write-Host "$ts Getting $_ updates."        
         ((New-Object -ComObject Microsoft.Update.Session).CreateupdateSearcher().Search($_)).Updates | ForEach-Object {
-            if (!$_.EulaAccepted) { $_.EulaAccepted = $true }
-            if ($_.Title -notmatch "Preview") { [void]$WUUpdates.Add($_) }
+            if (!$_.EulaAccepted) {
+                $_.EulaAccepted = $true 
+            }
+            if ($_.Title -notmatch 'Preview') {
+                [void]$WUUpdates.Add($_) 
+            }
         }
 
         if ($WUUpdates.Count -ge 1) {
@@ -121,14 +128,16 @@ Process {
             $WUDownloader.Updates = $WUUpdates
             $UpdateCount = $WUDownloader.Updates.count
             if ($UpdateCount -ge 1) {
-                $ts = get-date -f "yyyy/MM/dd hh:mm:ss tt"
+                $ts = Get-Date -f 'yyyy/MM/dd hh:mm:ss tt'
                 Write-Output "$ts Downloading $UpdateCount Updates"
-                foreach ($update in $WUInstaller.Updates) { Write-Output "$($update.Title)" }
+                foreach ($update in $WUInstaller.Updates) {
+                    Write-Output "$($update.Title)" 
+                }
                 $Download = $WUDownloader.Download()
             }
             $InstallUpdateCount = $WUInstaller.Updates.count
             if ($InstallUpdateCount -ge 1) {
-                $ts = get-date -f "yyyy/MM/dd hh:mm:ss tt"
+                $ts = Get-Date -f 'yyyy/MM/dd hh:mm:ss tt'
                 Write-Output "$ts Installing $InstallUpdateCount Updates"
                 $Install = $WUInstaller.Install()
                 $ResultMeaning = ($Results | Where-Object { $_.ResultCode -eq $Install.ResultCode }).Meaning
@@ -137,12 +146,12 @@ Process {
             } 
         }
         else {
-            Write-Output "No Updates Found"
+            Write-Output 'No Updates Found'
         } 
     }
 
     # Specify return code
-    $ts = get-date -f "yyyy/MM/dd hh:mm:ss tt"
+    $ts = Get-Date -f 'yyyy/MM/dd hh:mm:ss tt'
     if ($script:needReboot) {
         Write-Host "$ts Windows Update indicated that a reboot is needed."
     }
@@ -153,20 +162,20 @@ Process {
     # For whatever reason, the reboot needed flag is not always being properly set.  So we always want to force a reboot.
     # If this script (as an app) is being used as a dependent app, then a hard reboot is needed to get the "main" app to
     # install.
-    $ts = get-date -f "yyyy/MM/dd hh:mm:ss tt"
-    if ($Reboot -eq "Hard") {
+    $ts = Get-Date -f 'yyyy/MM/dd hh:mm:ss tt'
+    if ($Reboot -eq 'Hard') {
         Write-Host "$ts Exiting with return code 1641 to indicate a hard reboot is needed."
         Stop-Transcript
         Exit 1641
     }
-    elseif ($Reboot -eq "Soft") {
+    elseif ($Reboot -eq 'Soft') {
         Write-Host "$ts Exiting with return code 3010 to indicate a soft reboot is needed."
         Stop-Transcript
         Exit 3010
     }
-    elseif ($Reboot -eq "Delayed") {
+    elseif ($Reboot -eq 'Delayed') {
         Write-Host "$ts Rebooting with a $RebootTimeout second delay"
-        & shutdown.exe /r /t $RebootTimeout /c "Rebooting to complete the installation of Windows updates."
+        & shutdown.exe /r /t $RebootTimeout /c 'Rebooting to complete the installation of Windows updates.'
         Exit 0
     }
     else {
