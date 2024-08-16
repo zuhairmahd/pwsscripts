@@ -26,7 +26,13 @@ try {
     }
     else {
         Write-Host Found $name in $registryPath. Setting value to $value.
-        Set-ItemProperty -Path $registryPath -Name $name -Value $value
+        if ((Get-ItemProperty -Path $registryPath -Name $Name) -eq 1) {
+            Write-Host $Name is already set to 1. Exiting.
+        }
+        else {
+            Set-ItemProperty -Path $registryPath -Name $name -Value $value
+            Write-Host $Name has been set to $value.
+        }
     }
 }
 
