@@ -185,13 +185,13 @@ Process {
                 Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
             }
             Add-Type -AssemblyName PresentationFramework
-            [System.Windows.MessageBox]::Show("All updates have been installed. Click OK to reboot your computer in $RebootTimeout seconds.", 'Windows Updates', 'OK', 'Information')
+            [System.Windows.MessageBox]::Show('All updates have been installed. Click OK to continue.', 'Windows Updates', 'OK', 'Information')
         }
         else {
             Add-Type -AssemblyName PresentationFramework
             [System.Windows.MessageBox]::Show("Click OK to reboot your computer to continue installing updates.  Your computer will reboot in $RebootTimeout seconds.", 'Windows Updates', 'OK', 'Information')
+            & shutdown.exe /r /t $RebootTimeout /c 'Rebooting to complete the installation of Windows updates.'
         }
-        & shutdown.exe /r /t $RebootTimeout /c 'Rebooting to complete the installation of Windows updates.'
         Exit 0
     }
     else {
