@@ -29,9 +29,9 @@ Copy-Item $ScriptName $ScriptsFolder
 
 try {
     $TaskTrigger = New-ScheduledTaskTrigger -AtLogOn
-    # $TaskTrigger = New-ScheduledTaskTrigger -Once
     # $TaskUser = 'NT AUTHORITY\LOCALSERVICE'
-    $TaskAction = New-ScheduledTaskAction -Execute $PWSCommand -Argument "-executionPolicy Bypass $ScriptsFolder\$ScriptName -reboot 'None'" -WorkingDirectory $ScriptsFolder 
+    $TaskTriggerDelay = 15
+    $TaskAction = New-ScheduledTaskAction -Execute $PWSCommand -Argument "-executionPolicy Bypass $ScriptsFolder\$ScriptName -reboot 'Delayed' -RebootTimeout $TaskTriggerDelay" -WorkingDirectory $ScriptsFolder 
     $TaskName = 'UpdateOS'
     #Check to see if the task is already registered 
     $TaskCheck = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
@@ -45,7 +45,7 @@ try {
         Register-ScheduledTask -TaskName $TaskName -Description "Run the shell script in $ScriptName to download system updates" -Trigger $TaskTrigger -Action $TaskAction -RunLevel Highest -Force
     }
 }
-#'-User 'NT AUTHORITY\SYSTEM''
+
 catch {
     Write-Output "An error occurred while creating the scheduled task. The error was: $_"
 }

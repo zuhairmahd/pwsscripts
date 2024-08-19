@@ -25,6 +25,7 @@
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
+Version 2.0:  Added a boot strapper for post-update run
 Version 1.9:  Added -ExcludeUpdates switch.
 Version 1.8:  Added logic to pass the -ExcludeDrivers switch when relaunching as 64-bit.
 Version 1.7:  Switched to Windows Update COM objects.
@@ -84,6 +85,7 @@ Process {
 
     # Main logic
     $script:needReboot = $false
+    $NoUpdates = 1
 
     # Opt into Microsoft Update
     $ts = Get-Date -f 'yyyy/MM/dd hh:mm:ss tt'
@@ -107,7 +109,6 @@ Process {
         # Both
         $queries = @("IsInstalled=0 and Type='Software'", "IsInstalled=0 and Type='Driver'")
     }
-
     $queries | ForEach-Object {
 
         $WUUpdates = New-Object -ComObject Microsoft.Update.UpdateColl
@@ -121,13 +122,14 @@ Process {
                 [void]$WUUpdates.Add($_) 
             }
         }
-
         if ($WUUpdates.Count -ge 1) {
+            $NoUpdates = 0
             $WUInstaller.ForceQuiet = $true
             $WUInstaller.Updates = $WUUpdates
             $WUDownloader.Updates = $WUUpdates
             $UpdateCount = $WUDownloader.Updates.count
             if ($UpdateCount -ge 1) {
+                $NoUpdates = 0
                 $ts = Get-Date -f 'yyyy/MM/dd hh:mm:ss tt'
                 Write-Output "$ts Downloading $UpdateCount Updates"
                 foreach ($update in $WUInstaller.Updates) {
@@ -166,24 +168,35 @@ Process {
     $ts = Get-Date -f 'yyyy/MM/dd hh:mm:ss tt'
     if ($Reboot -eq 'Hard') {
         Write-Host "$ts Exiting with return code 1641 to indicate a hard reboot is needed."
-        Stop-Transcript
-        Exit 1641
+        $ExitCode = 1641
     }
     elseif ($Reboot -eq 'Soft') {
         Write-Host "$ts Exiting with return code 3010 to indicate a soft reboot is needed."
-        Stop-Transcript
-        Exit 3010
+        $ExitCode = 3010
     }
     elseif ($Reboot -eq 'Delayed') {
         Write-Host "$ts Rebooting with a $RebootTimeout second delay"
+        if ($NoUpdates -eq 1) {
+            #Unregister the task if it is registered
+            $TaskName = 'UpdateOS'
+            $TaskCheck = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+            If ($TaskCheck) {
+                Write-Output 'Unregistering task'
+                Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+            }
+            Add-Type -AssemblyName PresentationFramework
+            [System.Windows.MessageBox]::Show("All updates have been installed. Click OK to reboot your computer in $RebootTimeout seconds.", 'Windows Updates', 'OK', 'Information')
+        }
+        else {
+            Add-Type -AssemblyName PresentationFramework
+            [System.Windows.MessageBox]::Show("Click OK to reboot your computer to continue installing updates.  Your computer will reboot in $RebootTimeout seconds.", 'Windows Updates', 'OK', 'Information')
+        }
         & shutdown.exe /r /t $RebootTimeout /c 'Rebooting to complete the installation of Windows updates.'
         Exit 0
     }
     else {
         Write-Host "$ts Skipping reboot based on Reboot parameter (None)"
-        #Display a windows message box letting the user know to reboot their computer
-        Add-Type -AssemblyName PresentationFramework
-        [System.Windows.MessageBox]::Show('Windows has finished downloading and installing necessary updates.  It is important to reboot your PC to continue.', 'Windows Updates', 'OK', 'Information')
-        Exit 0
+        $ExitCode = 0
     }
+    exit $ExitCode
 }
