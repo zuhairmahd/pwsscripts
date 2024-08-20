@@ -5,4 +5,4 @@ Uninstall command: cmd.exe /c del %ProgramData%\IntuneScripts\updateOS.ps1
 Install behavior: User
 Device restart behavior: No specific action
 For Detection Rules:
-Use the File Exists rule to check for c:\programFiles\IntuneScripts\UpdateOS.ps1
+Use the File Exists rule to check for c:\ProgramData\IntuneScripts\UpdateOS.ps1

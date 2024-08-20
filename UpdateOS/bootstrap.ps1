@@ -26,23 +26,23 @@ else {
 }
 Copy-Item $ScriptName $ScriptsFolder
 
+$TaskTrigger = New-ScheduledTaskTrigger -AtLogOn
+$TaskUser = "$env:USERDOMAIN\$env:USERNAME"
+$TaskTriggerDelay = 15
+$TaskAction = New-ScheduledTaskAction -Execute $PWSCommand -Argument "-executionPolicy Bypass $ScriptsFolder\$ScriptName -reboot 'Delayed' -RebootTimeout $TaskTriggerDelay" -WorkingDirectory $ScriptsFolder 
+$TaskName = 'UpdateOS'
 
 try {
-    $TaskTrigger = New-ScheduledTaskTrigger -AtLogOn
-    # $TaskUser = 'NT AUTHORITY\LOCALSERVICE'
-    $TaskTriggerDelay = 15
-    $TaskAction = New-ScheduledTaskAction -Execute $PWSCommand -Argument "-executionPolicy Bypass $ScriptsFolder\$ScriptName -reboot 'Delayed' -RebootTimeout $TaskTriggerDelay" -WorkingDirectory $ScriptsFolder 
-    $TaskName = 'UpdateOS'
     #Check to see if the task is already registered 
     $TaskCheck = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
     If ($TaskCheck) {
         Write-Output "The task $TaskName already exists. Updating the task."
         Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
-        Register-ScheduledTask -TaskName $TaskName -Description "Run the shell script in $ScriptName to download system updates" -Trigger $TaskTrigger -Action $TaskAction -RunLevel Highest -Force
+        Register-ScheduledTask -TaskName $TaskName -Description "Run the shell script in $ScriptName to download system updates" -Trigger $TaskTrigger -Action $TaskAction -User $TaskUser -RunLevel Highest -Force
     }
     else {
         Write-Output "Creating the task $TaskName."
-        Register-ScheduledTask -TaskName $TaskName -Description "Run the shell script in $ScriptName to download system updates" -Trigger $TaskTrigger -Action $TaskAction -RunLevel Highest -Force
+        Register-ScheduledTask -TaskName $TaskName -Description "Run the shell script in $ScriptName to download system updates" -Trigger $TaskTrigger -Action $TaskAction -User $TaskUser -RunLevel Highest -Force
     }
 }
 
