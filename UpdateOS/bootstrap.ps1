@@ -1,5 +1,6 @@
 $ScriptName = 'UpdateOS.ps1'
 $ScriptsFolder = 'C:\ProgramData\IntuneScripts'
+$ScriptArguments = "-reboot 'delayed' 30"
 $LogFolder = 'C:\ProgramData\PWSLogs\UpdateOS'
 $LogFile = 'UpdateOS-bootstrap.log'
 $PWSCommand = 'C:\windows\system32\WindowsPowerShell\v1.0\PowerShell.exe'
@@ -13,7 +14,9 @@ else {
     New-Item -Path $LogFolder -ItemType Directory | Out-Null
     Write-Output "The folder $LogFolder was successfully created. Files will be written to $LogFile."
 }
+
 Start-Transcript -Append -IncludeInvocationHeader -Path "$LogFolder\$LogFile"
+
 #Now let's copy the script
 If (Test-Path $ScriptsFolder) {
     Write-Output "$ScriptsFolder exists.  Copying the script."
@@ -24,30 +27,21 @@ else {
     New-Item -Path $ScriptsFolder -ItemType Directory | Out-Null
     Write-Output "The folder $ScriptsFolder was successfully created. Copying the script."
 }
-Copy-Item $ScriptName $ScriptsFolder
+Copy-Item $ScriptName $ScriptsFolder -Force
 
-$TaskTrigger = New-ScheduledTaskTrigger -AtLogOn
-$TaskUser = "$env:USERDOMAIN\$env:USERNAME"
-$TaskTriggerDelay = 15
-$TaskAction = New-ScheduledTaskAction -Execute $PWSCommand -Argument "-executionPolicy Bypass $ScriptsFolder\$ScriptName -reboot 'Delayed' -RebootTimeout $TaskTriggerDelay" -WorkingDirectory $ScriptsFolder 
-$TaskName = 'UpdateOS'
-
-try {
-    #Check to see if the task is already registered 
-    $TaskCheck = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-    If ($TaskCheck) {
-        Write-Output "The task $TaskName already exists. Updating the task."
-        Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
-        Register-ScheduledTask -TaskName $TaskName -Description "Run the shell script in $ScriptName to download system updates" -Trigger $TaskTrigger -Action $TaskAction -User $TaskUser -RunLevel Highest -Force
-    }
-    else {
-        Write-Output "Creating the task $TaskName."
-        Register-ScheduledTask -TaskName $TaskName -Description "Run the shell script in $ScriptName to download system updates" -Trigger $TaskTrigger -Action $TaskAction -User $TaskUser -RunLevel Highest -Force
-    }
+#Let's ad an entry to the user's registry to run the script at logon
+$RegKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+$RegName = 'UpdateOS'
+$RegValue = "`"$PWSCommand -ExecutionPolicy Bypass -File $ScriptsFolder\$ScriptName`" $ScriptArguments"
+If (Test-Path $RegKey) {
+    Write-Output 'Adding registry entry to run the script at logon.'
+    New-ItemProperty -Path $RegKey -Name $RegName -Value $RegValue -PropertyType String -Force | Out-Null
 }
-
-catch {
-    Write-Output "An error occurred while creating the scheduled task. The error was: $_"
+else {
+    Write-Output "The registry key $RegKey doesn't exist. Creating now."
+    New-Item -Path $RegKey -Force | Out-Null
+    Write-Output 'Adding registry entry to run the script at logon.'
+    New-ItemProperty -Path $RegKey -Name $RegName -Value $RegValue -PropertyType String -Force | Out-Null
 }
 
 Stop-Transcript

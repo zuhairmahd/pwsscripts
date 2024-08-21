@@ -177,12 +177,15 @@ Process {
     elseif ($Reboot -eq 'Delayed') {
         Write-Host "$ts Rebooting with a $RebootTimeout second delay"
         if ($NoUpdates -eq 1) {
-            #Unregister the task if it is registered
-            $TaskName = 'UpdateOS'
-            $TaskCheck = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-            If ($TaskCheck) {
-                Write-Output 'Unregistering task'
-                Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+            #Remove the startup shortcut from the user registry if it exists 
+            $ts = Get-Date -f 'yyyy/MM/dd hh:mm:ss tt'
+            Write-Host "$ts Removing the startup shortcut from the user registry if it exists"
+            $RegPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+            $RegName = 'UpdateOS'
+            if (Test-Path $RegPath) {
+                if (Get-ItemProperty -Path $RegPath -Name $RegName -ErrorAction SilentlyContinue) {
+                    Remove-ItemProperty -Path $RegPath -Name $RegName
+                }
             }
             Add-Type -AssemblyName PresentationFramework
             [System.Windows.MessageBox]::Show('All updates have been installed. Click OK to continue.', 'Windows Updates', 'OK', 'Information')
