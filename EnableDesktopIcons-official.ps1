@@ -22,7 +22,7 @@ else {
     Write-Output "The folder $LogFolder was successfully created."
 }
 
-Start-Transcript -Append -IncludeInvocationHeader -Path $LogFolder\$LogFile
+Start-Transcript -Append -IncludeInvocationHeader -Path $LogFolder\$LogFile -Force
 
 #enable "This PC"
 if (!(Test-Path $Path)) {

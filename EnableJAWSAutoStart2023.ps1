@@ -21,12 +21,13 @@ else {
     New-Item -Path $LogFolder -ItemType Directory | Out-Null
     Write-Output "The folder $LogFolder was successfully created. Files will be written to $LogFile."
 }
-Start-Transcript -Append -IncludeInvocationHeader -Path "$LogFolder$LogFile"
+Start-Transcript -Append -IncludeInvocationHeader -Path "$LogFolder$LogFile" -Force
 
 try {
     #Let's see if JAWS is installed by checking for the presence of the jaws executable
     if (!(Test-Path $JAWSFilePath)) {
         Write-Host 'JAWS executable not found'
+        Stop-Transcript
         exit 1
     }
     else {
@@ -35,6 +36,7 @@ try {
     #now let's check for the path in the registry
     if (!(Test-Path $JAWSRegistryPath)) {
         Write-Host 'JAWS registry key not found'
+        Stop-Transcript
         exit 1
     }
     else {
