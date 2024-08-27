@@ -101,6 +101,7 @@ foreach ($PackageToRemove in $PackagesToRemove) {
     $PackageVersion = $PackageToRemove.Version
     Write-Host "Removing $PackageDisplayName Version $PackageVersion from the image"
     try {
+        Remove-AppxProvisionedPackage -PackageName $PackageName -Online -AllUsers -ErrorAction SilentlyContinue
         Remove-AppxProvisionedPackage -PackageName $PackageName -Online -ErrorAction SilentlyContinue
         Write-Host "Removed $PackageDisplayName version $PackageVersion from the image"
     }
@@ -146,12 +147,29 @@ foreach ($sid in $UserSIDs) {
 
 
 ##Stop personal Teams and keep it from coming back
+$MSTeams = 'MSTeams'
+$TeamsWinApp = Get-AppxPackage -Name $MSTeams -AllUsers  -ErrorAction SilentlyContinue
+$TeamsPrrovisionedApp = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $MSTeams }
+if ($TeamsWinApp.Name -eq $MSTeams) {
+    Write-Host 'Built-in Teams Chat App Detected'
+    Remove-AppxPackage -Package $TeamsWinApp -AllUsers -ErrorAction SilentlyContinue
+    Remove-AppxPackage -Package $TeamsWinApp -ErrorAction SilentlyContinue
+}
+elseif ($TeamsPrrovisionedApp.DisplayName -eq $MSTeams) {
+    Write-Host 'Built-in Teams Chat App Detected in image'
+    Remove-AppxProvisionedPackage -PackageName $MSTeams -Online -AllUsers -ErrorAction SilentlyContinue
+    Remove-AppxProvisionedPackage -PackageName $MSTeams -Online -ErrorAction SilentlyContinue
+}
+ELSE {
+    Write-Host 'Built-in Teams Chat App Not Detected'
+}
+#stop it from coming back
 $registryPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications'
 If (!(Test-Path $registryPath)) { 
     New-Item $registryPath
 }
 Set-ItemProperty $registryPath ConfigureChatAutoInstall -Value 0
-##Unpin it
+#Unpin it
 $registryPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Chat'
 If (!(Test-Path $registryPath)) { 
     New-Item $registryPath
