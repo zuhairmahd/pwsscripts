@@ -15,7 +15,7 @@ else {
 }
 
 
-Start-Transcript -Append -IncludeInvocationHeader -Path "$LogFolder$LogFile" -Force
+Start-Transcript -Append -IncludeInvocationHeader -Path "$LogFolder\$LogFile" -Force
 
 # Check if the registry key exists
 If (Test-Path $RegistryPath) {

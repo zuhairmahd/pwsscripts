@@ -10,7 +10,7 @@ else {
     New-Item -Path $LogFolder -ItemType Directory | Out-Null
     Write-Output "The folder $LogFolder was successfully created. Files will be written to $LogFile."
 }
-Start-Transcript -Append -IncludeInvocationHeader -Path "$LogFolder$LogFile" -Force
+Start-Transcript -Append -IncludeInvocationHeader -Path "$LogFolder\$LogFile" -Force
 
 Try {
     $WinPackage = Get-AppxPackage -AllUsers | Where-Object { $_.Name -eq $MSTeams }
@@ -41,6 +41,7 @@ Try {
 catch {
     $errMsg = $_.Exception.Message
     return $errMsg
+    Stop-Transcript
     Exit 1
 }
 

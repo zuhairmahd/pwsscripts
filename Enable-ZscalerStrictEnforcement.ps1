@@ -14,7 +14,7 @@ else {
     New-Item -Path $LogFolder -ItemType Directory | Out-Null
     Write-Output "The folder $LogFolder was successfully created. Files will be written to $LogFolder\$LogFile."
 }
-Start-Transcript -Append -IncludeInvocationHeader -Path "$LogFolder$LogFile" -Force
+Start-Transcript -Append -IncludeInvocationHeader -Path "$LogFolder\$LogFile" -Force
 
 # Check if the registry key exists
 If (Test-Path $RegistryPath) {
