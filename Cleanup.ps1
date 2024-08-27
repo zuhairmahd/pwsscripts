@@ -144,6 +144,21 @@ foreach ($sid in $UserSIDs) {
     }
 }
 
+
+##Stop personal Teams and keep it from coming back
+$registryPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications'
+If (!(Test-Path $registryPath)) { 
+    New-Item $registryPath
+}
+Set-ItemProperty $registryPath ConfigureChatAutoInstall -Value 0
+##Unpin it
+$registryPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Chat'
+If (!(Test-Path $registryPath)) { 
+    New-Item $registryPath
+}
+Set-ItemProperty $registryPath 'ChatIcon' -Value 2
+Write-Host 'Unpinned Teams Chat'
+
 #we are done.
 Write-Host "Cleanup completed. Please check the log file at $LogFolder\$LogFile for more details"
 Stop-Transcript
