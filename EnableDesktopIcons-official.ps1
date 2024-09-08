@@ -25,6 +25,18 @@ else {
 Start-Transcript -Append -IncludeInvocationHeader -Path $LogFolder\$LogFile -Force
 
 #enable "This PC"
+
+#First check to see if it is already enabled
+If (Test-Path $Path) {
+    $ThisPCStatus = Get-ItemProperty -Path $Path -Name $ThisPC -ErrorAction SilentlyContinue
+    If (($null -eq $ThisPCStatus) -or ($ThisPCStatus.$ThisPC -eq $turnedOff)) {
+        Write-Output 'This PC is not enabled. Enabling now.'
+    }
+    else {
+        Write-Output 'This PC is already enabled. Skipping.'
+    }
+}
+
 if (!(Test-Path $Path)) {
     New-Item -Path $Path -Force
 }
