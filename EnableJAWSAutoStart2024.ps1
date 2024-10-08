@@ -13,6 +13,7 @@ $AlwaysRun = 1
 $NeverRun = 0
 $AllUsersRunKeyName = 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Run'
 # $CurrentUserRunKeyName = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+$JAWSTargetVersion = '2024.2409.2.400'
 
 
 #Create Folder to keep logs 
@@ -46,6 +47,16 @@ try {
     }
     else {
         Write-Host 'JAWS registry key found'
+    }
+    #Check the executable file for the right version of JAWS
+    $jawsVersion = (Get-Command $JAWSFilePath).FileVersionInfo.ProductVersion
+    if ($jawsVersion -ne $JAWSTargetVersion) {
+        Write-Host "JAWS version is $jawsVersion.  The target version is $JAWSTargetVersion.  Versions do not match. Exiting."
+        Stop-Transcript
+        exit 1
+    }
+    else {
+        Write-Host "JAWS version is $jawsVersion.  The target version is $JAWSTargetVersion. Versions match"
     }
     #now that we know JAWS is installed, let's proceed to enable it for auto start
     $key = Get-ItemProperty -Path $machinePath -Name $keyName -Verbose -ErrorAction SilentlyContinue

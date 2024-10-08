@@ -9,7 +9,7 @@ $MyDocuments = '{59031a47-3f72-44a7-89c5-5595fe6b30ee}'
 $MyNetworks = '{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}'
 $KeyFormat = 'dword'
 $turnedOn = '0'
-$turnedOffff = '1'
+# $turnedOff = '1'
 
 #Create Folder to keep logs 
 If (Test-Path $LogFolder) {
@@ -51,10 +51,10 @@ if (!(Test-Path $Path)) {
     New-Item -Path $Path -Force
 }
 if (!$MyNetworks) {
-    Set-Item -Path $Path -Value $turnedOffff
+    Set-Item -Path $Path -Value $turnedOn
 }
 else {
-    Set-ItemProperty -Path $Path -Name $MyNetworks -Value $turnedOffff -Type $KeyFormat -Force
+    Set-ItemProperty -Path $Path -Name $MyNetworks -Value $turnedOn -Type $KeyFormat -Force
 }
 
 

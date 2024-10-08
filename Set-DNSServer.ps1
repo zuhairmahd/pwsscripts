@@ -22,8 +22,8 @@ try {
     Write-Output 'Setting DNS servers on all connected network adapters'
     foreach ($nic in $dnsclient) {
         #Set the DNS servers to the hashtable in $servers 
-        Write-Output "Setting DNS servers on $($nic.InterfaceAlias) adapter with index $($nic.InterfaceIndex) to $($Servers.Values -join ', ')"
-        Set-DnsClientServerAddress -InterfaceIndex $nic.InterfaceIndex -ServerAddresses $Servers.Values -ErrorAction SilentlyContinue
+        Write-Output "Setting DNS servers on $($nic.InterfaceAlias) adapter with index $($nic.InterfaceIndex) to $($Servers.DNS1, $Servers.DNS2)"
+        Set-DnsClientServerAddress -InterfaceIndex $nic.InterfaceIndex -ServerAddresses $Servers.DNS1, servers.DNS2 -ErrorAction SilentlyContinue
     }
 }
 catch {
