@@ -1,6 +1,6 @@
 #define variables
 $LogFolder = 'C:\ProgramData\PWSLogs'
-$LogFile = 'TimeZone.log'
+$LogFile = 'TimeZone-check.log'
 
 #Create Folder to keep logs 
 If (Test-Path $LogFolder) {
@@ -114,9 +114,9 @@ if ($UnixTimezone ) {
     Write-Host Got the time zone from IP address.
 }
 else {
-    Write-Host Failed to get timezone.  Giving up.
+    Write-Host 'Failed to get timezone.  Giving up as there is nothing to do. Will not be calling remediation script.'
     Stop-Transcript
-    exit 1
+    exit 0
 }
 
 if ($WindowsTimezone) {
@@ -129,12 +129,13 @@ if ($WindowsTimezone) {
         exit 0
     }
     else {
-        Set-TimeZone -Id $WindowsTimeZone
-        Write-Host "Time zone set to $WindowsTimeZone"
+        Write-Host "Time zone is not set to $WindowsTimeZone.  Returning exit code 1 so remediation script to run"
+        Stop-Transcript
+        exit 1
     }
 }
 else {
-    Write-Host Could not set time zone
+    Write-Host 'Could not detect time zone'
 }
 
 #we are done here
@@ -142,8 +143,8 @@ Stop-Transcript
 # SIG # Begin signature block
 # MII9YAYJKoZIhvcNAQcCoII9UTCCPU0CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAk4jk4t0WW2vhY
-# V5HTfmxXKp5LvegIjEhNolATjYSWNaCCIqYwggXMMIIDtKADAgECAhBUmNLR1FsZ
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCZXwY6m1muLUc3
+# zZX3+/zItq4eN0lapv+J8Hxf3joopaCCIqYwggXMMIIDtKADAgECAhBUmNLR1FsZ
 # lUgTecgRwIeZMA0GCSqGSIb3DQEBDAUAMHcxCzAJBgNVBAYTAlVTMR4wHAYDVQQK
 # ExVNaWNyb3NvZnQgQ29ycG9yYXRpb24xSDBGBgNVBAMTP01pY3Jvc29mdCBJZGVu
 # dGl0eSBWZXJpZmljYXRpb24gUm9vdCBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkgMjAy
@@ -332,20 +333,20 @@ Stop-Transcript
 # BgNVBAoTFU1pY3Jvc29mdCBDb3Jwb3JhdGlvbjErMCkGA1UEAxMiTWljcm9zb2Z0
 # IElEIFZlcmlmaWVkIENTIEFPQyBDQSAwMQITMwABzEJ+xUgPpfHhLwAAAAHMQjAN
 # BglghkgBZQMEAgEFAKBeMBAGCisGAQQBgjcCAQwxAjAAMBkGCSqGSIb3DQEJAzEM
-# BgorBgEEAYI3AgEEMC8GCSqGSIb3DQEJBDEiBCDUq00R+vxZx0aYMwzruhLaIr2V
-# ffseoiyEdeyGOboHKjANBgkqhkiG9w0BAQEFAASCAYBai3M0Ep+mrsd/axMDFfra
-# RiIumeThC8Hm7JvbeE7BqAC4fSRn9wZin7KNtoxxtr/Wa9QoqTy27cNBkQ0Sb/Fd
-# af9SCSElZV+GE+Tsg4E7nh+WQb/ta3YDMrjz7lFRfYzF53PS4Prfv6e/UAymeSPx
-# m/D0ikvQSeqLjf1ByiWzwVVDE1zSQlmKzjXoseRpYuXmheV9zBPCECT0581upslI
-# bmcGbUk+FcRgMSLhQpOR7LIenpyWjrA2TfNqHZgD8m1fWatLec8DD58U1XyYKT0M
-# 9XWq8cOkY+rKp91+7YSazLCeSJf44tsaCYs5unAk0tbQaL8+SUtud6ta39hJXcyX
-# Cuc1U4jJP3kqCjZ1V9bDlNIctAtTEhjQ5uJ3xn8YgKV2ikIl6Lgs5F9GVojopHm1
-# rUolYDt5fZW/vqmbIJfUnyTLaCtsUU+jYYymZldpBpOZxPOb3VgmVpQEaTopaFGM
-# iOf44s9RDZkJQjokZALI28mAUY1Wur1LWw50StgRVGGhgheQMIIXjAYKKwYBBAGC
+# BgorBgEEAYI3AgEEMC8GCSqGSIb3DQEJBDEiBCBYz6Z3+R9KgusEH89kV78mx7NR
+# Bv5Bnz5Xlx1P1+W0fjANBgkqhkiG9w0BAQEFAASCAYARaparItgIgwQgH/dtPb3P
+# zXph+9zcrJ/kL1jj2uVGR7ar7MzD8zq6wuDjMxAsgbpSU6n4snwF+kOfLXvVHY25
+# DfN8Au8GJzZ45J+wqDU7O5nIExk2z+qa9/u3BevrBEl/S6KI8TCXifZa3gFbQhts
+# gQmavj611lwIa6SsC7BgO2QGUWsa20yyd/mIsXiai1+Apa5O1oy/aX7rY00H23f+
+# /Fg2itGsYdoNrBJ0kp2LmiDoqCvTZ6ZaG4lZfDua2L7vZgz4vbGBQx/TkXSgKHD4
+# G+aTOKFY9X95mQN5kWI2dWYSIC1dIt7YxbvdAxr7VWX1NB3GQv4dgr50/jsVu0J4
+# /2BbuLwYTsnzPVH50FxxFFPTi9Iqf4XewRN78zgD1oigJYFeV2UrzkoxArqEbdbJ
+# IIXeHFufBtWF96pDKKQvR5tyXr+1aKQ5VZKOAb5H2ZzDpJn+l1BJBsZbeVbFU0QM
+# xBwr1JjB8FPUbEidQhBL+kxJMCELInaAeXIhVtERFxKhgheQMIIXjAYKKwYBBAGC
 # NwMDATGCF3wwghd4BgkqhkiG9w0BBwKgghdpMIIXZQIBAzEPMA0GCWCGSAFlAwQC
 # AQUAMIIBYQYLKoZIhvcNAQkQAQSgggFQBIIBTDCCAUgCAQEGCisGAQQBhFkKAwEw
-# MTANBglghkgBZQMEAgEFAAQg+/27utg1BuLTRmVii2xeY46qooSI9x+0naTMn+vJ
-# yLgCBmclIlF77BgTMjAyNDExMDUwNTE3MzIuNzgxWjAEgAIB9KCB4KSB3TCB2jEL
+# MTANBglghkgBZQMEAgEFAAQgXrgKbQidrA9xFf1Q8It9JnSBhW38/jbNcckgspAz
+# kjUCBmclIlF76hgTMjAyNDExMDUwNTE3MjguODc0WjAEgAIB9KCB4KSB3TCB2jEL
 # MAkGA1UEBhMCVVMxEzARBgNVBAgTCldhc2hpbmd0b24xEDAOBgNVBAcTB1JlZG1v
 # bmQxHjAcBgNVBAoTFU1pY3Jvc29mdCBDb3Jwb3JhdGlvbjElMCMGA1UECxMcTWlj
 # cm9zb2Z0IEFtZXJpY2EgT3BlcmF0aW9uczEmMCQGA1UECxMdVGhhbGVzIFRTUyBF
@@ -435,9 +436,9 @@ Stop-Transcript
 # ChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMTIwMAYDVQQDEylNaWNyb3NvZnQgUHVi
 # bGljIFJTQSBUaW1lc3RhbXBpbmcgQ0EgMjAyMAITMwAAADbZNhyJCi5rgQAAAAAA
 # NjANBglghkgBZQMEAgEFAKCCBB0wEQYLKoZIhvcNAQkQAg8xAgUAMBoGCSqGSIb3
-# DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcNMjQxMTA1MDUxNzMy
-# WjAvBgkqhkiG9w0BCQQxIgQgkpvmDD0sOtSH+Fs3SMYtFfhPT2c0I7wuqrq/rxLj
-# l0cwgbkGCyqGSIb3DQEJEAIvMYGpMIGmMIGjMIGgBCA0A9dQAtIuK4xJqKETlX2e
+# DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcNMjQxMTA1MDUxNzI4
+# WjAvBgkqhkiG9w0BCQQxIgQgpVXOnmpvrMtFyfp5dlzJCjGzg7HRnJm5k4Fvr9Kk
+# 9cQwgbkGCyqGSIb3DQEJEAIvMYGpMIGmMIGjMIGgBCA0A9dQAtIuK4xJqKETlX2e
 # siXJAblGg3/WH/POMsUfZTB8MGWkYzBhMQswCQYDVQQGEwJVUzEeMBwGA1UEChMV
 # TWljcm9zb2Z0IENvcnBvcmF0aW9uMTIwMAYDVQQDEylNaWNyb3NvZnQgUHVibGlj
 # IFJTQSBUaW1lc3RhbXBpbmcgQ0EgMjAyMAITMwAAADbZNhyJCi5rgQAAAAAANjCC
@@ -456,16 +457,16 @@ Stop-Transcript
 # oSChCjAIAgEAAgMBhqAwDQYJKoZIhvcNAQEFBQADgYEAI/9aeiyOxpL7yiPRcaE+
 # chCaM0B+IJS0RmDpJuUi/eL2yeI9Bv0ypqUais51zsmKJc0fPHNcAb9ZiJYl6VkB
 # PDZUpnbTYI0KJh/bjdlfW6HIhgs45aaLdAbZJsR9qVZ8S4CsHPZo9Xv7bQdL3MBq
-# rcFDpneqdEZlu0OK9hRsN6EwDQYJKoZIhvcNAQEBBQAEggIAtLElQOIGbu77eQo5
-# fh4rl8YHY0EErdbDB+An/04v0Aatly72MN4azwepen7uOvA6bgbLPhN+kl1XgG60
-# y4zbW8uAY+s7B+HuvgkztxCZui/SpShiCIQnKK8l4iwQgQNaNHxO7aCoX+wdLB1S
-# NoN7cCrDttbEfGawo3Sx7P+fnS3OXCYkda+yAgFEMFj9niRL+LGc1yJkd7Oyr2F8
-# y/F1ua6q8fCvvDQyqhhSDVlV2oCXjv+Nn8go0o+pWOgzGitfdItCYGWFQavOgW4G
-# mAoogEDBsKiiBNaoTF7ZJW1Ga+d2O/MruRrw9J9mT55mVPCBLMqAYVbbZJwnUKhz
-# qpIX5KoMzB83Sxv6l34NrmtXL5xs/ONkmmDg7G6WxX9x7xtTb00C9ZM1Nwib+39v
-# F/vJDAd2s7xG4FG9WeiAFpr8QaSNrpPu5RvElYFoVXF8GYenM+sP4oRu7cLjD1ba
-# jbsIc+3VjTx8Vy8jT+/HkLmufA7AgnZfSwprBY8AFVLRycWNi0Qx+HaNIR9ld6Yo
-# t3n37rejBTSl4osHd4ffFI5LHo653rg2sC+Lc0H7Voh9ZywPkdmDMILRapYKeuoX
-# XNyHwhGUVxTznmRs2UzZ9TUubgH1qmlJxKP12ZChxgCaj2JnzV52HWHDfiIb22SK
-# dtpAGvBOsZx6KR26aheITu9vkyI=
+# rcFDpneqdEZlu0OK9hRsN6EwDQYJKoZIhvcNAQEBBQAEggIAcctCZdZnZcGTgyqV
+# colw64Xyr+tudMPTKtgX3svV7/nPXmPkJ7EHGMcdlCfp1WHpkCPJsa0O56lU7LBc
+# dBGQcC8dUfo0HJpfLd6E73cVQeEunBaj5vRwuldj6hBSgAgmARBFiroeEMm3Z4uC
+# Gmu+wzwq6boE5GXDt4OPKQs23tRx9/7tqTbuCV4KlD1GdPV/mj1MTE7uwNz/u1GN
+# 8pesRxi70qv9czLnUhWJnHfycfzpFo19g32xHM6kONk4aIzI21BGMSvwFxO6QXLn
+# awE0/4DMqyrKnnXD0G4cEqosRWJttDfvBI9hRSFX+p69yq5RASWVupRbnx+sKL6F
+# 50cbipOBjWZFQ61qTpX7thwiN6la2F1V6/QJphebjEb1KjJv1XBL6JzRfOVkWu9t
+# 9HcCnNk4ZPksx0TrsKw37K8vk1vVkpgF8Ek0mVrlPGPL9PCw71MnW/51a88r6okW
+# 6DbqU/9rm5VqWw5OH62KM+14gRCTFBeMo8luzRB9AxmYzAJ/RA2zqNL0WDsOko+F
+# DX26tQrCQHFWJRLZ/CWQTYlcRt7meum6BxB67rQ3z0+KMeyHwH3xm9TXt6TM1eAp
+# Sq42ERxaN+qNJ8cZ/33utmnwthN7na/vrF8o3B0OHdm2iKLvlaprYS+cB/ocpPIX
+# 1bYaE5BRZkx6hfRArjd+E4MmQyM=
 # SIG # End signature block
