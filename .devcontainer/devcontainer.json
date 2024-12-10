@@ -6,14 +6,20 @@
 	"image": "mcr.microsoft.com/powershell:lts-debian-11",
 	"features": {
 		"ghcr.io/devcontainers/features/common-utils:2": {
-			"installZsh": "true",
+			"installBash": "true",
+			"installAzureCli": "true",
 			"username": "vscode",
-			"upgradePackages": "false",
+			"upgradePackages": "true",
 			"nonFreePackages": "true"
 		},
 		"ghcr.io/devcontainers/features/dotnet:2": {
 			"install": "latest"
 		}
+	},
+	"hostRequirements": {
+		"cpus": 1,
+		"memory": "2048",
+		"storage": "20gb"
 	},
 	"postCreateCommand": "sudo chsh vscode -s \"$(which pwsh)\"",
 	// Configure tool-specific properties.
@@ -29,12 +35,14 @@
 			"Microsoft.graph.beta",
 			"az",
 			"PSReadLine"
-		]
+		],
 		// Configure properties specific to VS Code.
 		"vscode": {
 			// Set *default* container specific settings.json values on container create.
 			"settings": {
-				"terminal.integrated.defaultProfile.linux": "pwsh"
+				"terminal.integrated.defaultProfile.linux": "pwsh",
+				"terminal.integrated.accessibleViewFocusOnCommandExecution": true,
+				"editor.accessibilitySupport": "on"
 			},
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
@@ -44,7 +52,7 @@
 				"ms-vscode.azurecli",
 				"ms-vscode.azurefunctions",
 				"ms-vscode.azurelogicapps",
-				"ms-dotnettools.csharp",
+				"ms-dotnettools.csharp"
 			]
 		}
 	}
