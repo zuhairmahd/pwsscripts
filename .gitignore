@@ -1,4 +1,3 @@
 .secrets
 .secrets/*
-sign.ps1
 .gitignore
