@@ -103,7 +103,7 @@ if ($PackagesToRemove.count -gt 0) {
         $PackageVersion = $PackageToRemove.Version
         Write-Output "Removing $PackageDisplayName Version $PackageVersion from the image"
         try {
-            Remove-AppxProvisionedPackage -PackageName $PackageName -Online -ErrorAction $ErrorActionPreference
+            Remove-AppxProvisionedPackage -PackageName $PackageName -Online -ErrorAction SilentlyContinue
             Write-Host "Removed $PackageDisplayName version $PackageVersion from the image"
         }
         catch {
@@ -115,7 +115,7 @@ if ($PackagesToRemove.count -gt 0) {
         if ($InstalledPackage) {
             Write-Host "$PackageDisplayName version $PackageVersion is installed. . Removing for all users."
             try {
-                $InstalledPackage | Remove-AppxPackage -AllUsers -ErrorAction $ErrorActionPreference
+                $InstalledPackage | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
                 Write-Host "Removed $PackageDisplayName version $PackageVersion for all users."
                 $InstalledPackage | Remove-AppxPackage -ErrorAction SilentlyContinue
                 Write-Host "Removed $PackageDisplayName version $PackageVersion for current user."
@@ -137,26 +137,25 @@ else {
 $picture = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel'
 Write-Host "Checking the registry path for Learn About This Picture at $picture."
 if (Test-Path $picture) {
-    Write-Output 'Registry path exists. Checking to see if the registry entry for Learn about this picture is set'
-    $LearnAboutThisPicture = Get-ItemPropertyValue -Path $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -ErrorAction $ErrorActionPreference
+    Write-Output 'Registry path exists. Checking to see if Learn about this picture is enabled'
+    $LearnAboutThisPicture = Get-ItemPropertyValue -Path $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -ErrorAction SilentlyContinue
     if ($null -ne $LearnAboutThisPicture) {
-        Write-Output "registry key exists at $picture and is set to $LearnAboutThisPicture."
-        if ($LearnAboutThisPicture -eq 1) {
-            Write-Output "Learn about this picture is set to $LearnAboutThisPicture, so it is disabled."
+        Write-Output "registry value exists at $LearnAboutThisPicture.  Checking to see if it is enabled"
+        if ($LearnAboutThisPicture -eq 0) {
+            Write-Output 'Learn about this picture is disabled.  No action required.'
         }
         else {
-            Write-Output "Learn about this picture is set to $LearnAboutThisPicture.  Disabling Learn about this picture."
-            Set-ItemProperty -Path $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -Value 1
+            Write-Output 'Learn about this picture is enabled.  Disabling Learn about this picture.'
+            Set-ItemProperty -Path $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -Value 0
         }
     }
     else {
-        Write-Output 'The Learn about this picture registry key does not exist. Creating it and setting the value to 1.'
-        Set-ItemProperty -Path $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -Value 1
+        Write-Output 'Learn about this picture is not enabled.  No action required.'
     }
 }
 else {
-    Write-Host "Registry path $picture does not exist. Creating it and setting the key value to 1 to disable Learn About This Picture."
-    New-Item -Path $picture -Force
+    Write-Host "Registry path $picture does not exist. Creating to disable Learn About This Picture."
+    New-Item -Path $LearnAboutThisPicture -Force
     Set-ItemProperty -Path $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -Value 0
 }
 
@@ -166,26 +165,26 @@ foreach ($sid in $UserSIDs) {
     Write-Output "Checking the registry path for Learn About This Picture at $picture for SID $sid"
     If (Test-Path $picture) {
         Write-Output 'Registry path exists. Checking to see if Learn about this picture is enabled'
-        $LearnAboutThisPicture = Get-ItemPropertyValue -Path $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -ErrorAction $ErrorActionPreference
+        $LearnAboutThisPicture = Get-ItemPropertyValue -Path $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -ErrorAction SilentlyContinue
         if ($null -ne $LearnAboutThisPicture) {
             Write-Output 'registry value exists.  Checking to see if it is enabled'
-            if ($LearnAboutThisPicture -ne 0) {
+            if ($LearnAboutThisPicture -ne 1) {
                 Write-Host "Disabling Learn about this picture for SID $sid"
-                Set-ItemProperty $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -Value 0
+                Set-ItemProperty $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -Value 1
             }
             else {
                 Write-Host "Learn about this picture is already disabled for SID $sid"
             }
         }
         else {
-            Write-Host "The registry key at $picture  for SID $sid does not exist. Creating and setting the value to 0"
-            Set-ItemProperty $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -Value 0 -ErrorAction $ErrorActionPreference
+            Write-Host "Disabling Learn about this picture for SID $sid."
+            Set-ItemProperty $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -Value 1
         }
     }
     else {
         Write-Host "Registry path $picture for SID $sid does not exist. Creating to disable Learn About This Picture."
-        New-Item -Path $picture -Force -ErrorAction $ErrorActionPreference
-        Set-ItemProperty $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -Value 0 -ErrorAction $ErrorActionPreference
+        New-Item -Path $picture -Force
+        Set-ItemProperty $picture -Name '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}' -Value 1
     }
 }
 
