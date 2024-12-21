@@ -2,6 +2,8 @@ Param(
     [Parameter(Mandatory = $false)]
     [string]$TenantID,
     [Parameter(Mandatory = $false)]
+    [string]$thumbprint,
+    [Parameter(Mandatory = $false)]
     [string]$ClientID,
     [Parameter(Mandatory = $false)]
     [string]$ClientSecret,
@@ -23,7 +25,10 @@ if (-not $ClientSecret)
 {
     $ClientSecret = $Configs.ClientSecret 
 }
-$thumbPrint = $Configs.thumbprint
+if (-not $thumbprint)
+{
+    $thumbprint = $Configs.thumbprint 
+}
 
 # Stop on any error
 $ErrorActionPreference = 'Stop'
@@ -48,52 +53,34 @@ if (-not $group)
     Write-Host "Group '$($groupName)' not found."
     return
 }
-Write-Host "Found group: $($group.DisplayName) with Id: $($group.Id)"
+# Write-Host "Found group: $($group.DisplayName) with Id: $($group.Id)"
 
-try
+#Read all device configurations into a variable.
+$deviceConfigurations = Get-MgDeviceManagementDeviceConfiguration
+foreach ($deviceConfiguration in $deviceConfigurations)
 {
-    # Get Device Configuration Profiles assigned to the group
-    Write-Host 'Device Configuration Profiles:'
-    $deviceConfigurationAssignments = Get-MgGroupDeviceConfigurationAssignment -GroupId $GroupId
-    if ($deviceConfigurationAssignments)
+    Write-Output "Retrieving assignments for$($deviceConfiguration.DisplayName)"
+    $assignments = Get-MgDeviceManagementDeviceConfigurationAssignment -DeviceConfigurationId $deviceConfiguration.Id -All
+    Write-Output "Number of targets is $($assignments.Target.Count)"
+    if ($assignments.Target.Count -gt 0)
     {
-        foreach ($assignment in $deviceConfigurationAssignments)
-        {
-            $devProfile = Get-MgDeviceManagementDeviceCompliancePolicy -DeviceCompliancePolicyId $assignment.Target.DeviceAndAppManagementAssignmentTarget.TargetId
-            Write-Host "- $($devProfile.DisplayName) (ID: $($DevProfile.Id))"
-        }
+        Write-Output "Targets are $($assignments.Target)"
     }
-    else
+    if ($assignments.AdditionalProperties.Count -gt 0)
     {
-        Write-Host 'No device configuration profiles assigned to this group.'
-    }
-    Write-Host '' # Add a newline for better readability
-    # Get Mobile Apps (Applications) assigned to the group. This gets all types of apps.
-    Write-Host 'Mobile Applications:'
-    $mobileAppAssignments = Get-MgGroupMobileAppConfigurationAssignment -GroupId $GroupId
-    if ($mobileAppAssignments)
-    {
-        foreach ($assignment in $mobileAppAssignments)
-        {
-            try
-            {
-                $appId = $assignment.Target.DeviceAndAppManagementAssignmentTarget.TargetId
-                $app = Get-MgMobileApp -MobileAppId $appId
-                Write-Host "- $($app.DisplayName) (ID: $($app.Id)) - App Type: $($app.OdataType)"
-            }
-            catch
-            {
-                Write-Warning "Could not retrieve details for app ID $($assignment.Target.DeviceAndAppManagementAssignmentTarget.TargetId). This may be due to the app being deleted or permissions issues. Error: $($_.Exception.Message)"
-            }
-        }
-    }
-    else
-    {
-        Write-Host 'No mobile apps assigned to this group.'
+        Write-Output "Additional propperties are $($assignments.AdditionalProperties)"
     }
 
-}
-catch
-{
-    Write-Error "An error occurred: $($_.Exception.Message)"
+
+
+    Write-Output "Assignment ID is $($assignments.Id)"
+    Write-Output "Assignment keys $($assignments.AdditionalProperties.Keys)"
+    Write-Output "Values are $($assignments.AdditionalProperties.Values)"
+    foreach ($assignment in $assignments)
+    {
+        if ($assignment.Target.Id -eq $group.Id)
+        {
+            Write-Host "Device Configuration $($deviceConfiguration.DisplayName) is assigned to group $($group.DisplayName)"
+        }
+    }
 }
